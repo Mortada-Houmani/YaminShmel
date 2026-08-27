@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "YaminShmel (يمين شمال)",
+    "slug": "YaminShmel",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0F172A",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "YaminShmel needs access to your photo library to let you review and clean up photos locally.",
+        "NSPhotoLibraryAddUsageDescription": "YaminShmel needs permission to manage photo storage and deletions on your device."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0F172A",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      },
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Grant YaminShmel access to your photo gallery to swipe and declutter photos.",
+          "savePhotosPermission": "Allow YaminShmel to manage photo storage.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
+    ]
+  }
+}
