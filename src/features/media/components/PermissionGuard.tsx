@@ -1,15 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
-import { ShieldCheck, Image as ImageIcon, Sparkles } from 'lucide-react-native';
+import { ShieldCheck, Image as ImageIcon, Sparkles, Settings } from 'lucide-react-native';
 
 interface PermissionGuardProps {
   onRequestPermission: () => void;
+  onOpenSettings?: () => void;
   isRequesting: boolean;
+  canAskAgain?: boolean;
 }
 
 export const PermissionGuard: React.FC<PermissionGuardProps> = ({
   onRequestPermission,
+  onOpenSettings,
   isRequesting,
+  canAskAgain = true,
 }) => {
   return (
     <SafeAreaView style={styles.container}>
@@ -41,16 +45,27 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
           </View>
         </View>
 
-        <TouchableOpacity
-          style={[styles.button, isRequesting && styles.buttonDisabled]}
-          onPress={onRequestPermission}
-          activeOpacity={0.85}
-          disabled={isRequesting}
-        >
-          <Text style={styles.buttonText}>
-            {isRequesting ? 'Requesting Access...' : 'Grant Photo Access'}
-          </Text>
-        </TouchableOpacity>
+        {canAskAgain ? (
+          <TouchableOpacity
+            style={[styles.button, isRequesting && styles.buttonDisabled]}
+            onPress={onRequestPermission}
+            activeOpacity={0.85}
+            disabled={isRequesting}
+          >
+            <Text style={styles.buttonText}>
+              {isRequesting ? 'Requesting Access...' : 'Grant Photo Access'}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.button, styles.settingsButton]}
+            onPress={onOpenSettings || onRequestPermission}
+            activeOpacity={0.85}
+          >
+            <Settings size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+            <Text style={styles.buttonText}>Open Device Settings</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -158,9 +173,14 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.6,
   },
+  settingsButton: {
+    backgroundColor: '#3B82F6',
+    flexDirection: 'row',
+  },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
   },
 });
+

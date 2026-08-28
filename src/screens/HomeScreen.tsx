@@ -12,7 +12,7 @@ import { TrashReviewScreen } from '../features/review/components/TrashReviewScre
 import { MediaAsset, SwipeDirection, MonthGroup } from '../types/media';
 
 export const HomeScreen: React.FC = () => {
-  const { hasPermission, isRequesting, requestPermission } = useMediaPermissions();
+  const { hasPermission, isRequesting, canAskAgain, requestPermission, openSettings } = useMediaPermissions();
 
   const {
     assets,
@@ -109,7 +109,9 @@ export const HomeScreen: React.FC = () => {
     return (
       <PermissionGuard
         onRequestPermission={requestPermission}
+        onOpenSettings={openSettings}
         isRequesting={isRequesting}
+        canAskAgain={canAskAgain}
       />
     );
   }
