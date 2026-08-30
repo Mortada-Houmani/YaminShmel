@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -17,9 +17,9 @@ import { formatBytes } from '../../media/services/mediaService';
 import { Calendar, HardDrive, Maximize2 } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.35;
+const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.32;
 const CARD_WIDTH = SCREEN_WIDTH - 32;
-const CARD_HEIGHT = SCREEN_HEIGHT * 0.65;
+const CARD_HEIGHT = SCREEN_HEIGHT * 0.64;
 
 interface SwipeableCardProps {
   asset: MediaAsset;
@@ -65,30 +65,30 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
         const direction: SwipeDirection = event.translationX > 0 ? 'right' : 'left';
         const targetX = event.translationX > 0 ? SCREEN_WIDTH * 1.5 : -SCREEN_WIDTH * 1.5;
 
-        translationX.value = withTiming(targetX, { duration: 250 }, () => {
+        translationX.value = withTiming(targetX, { duration: 240 }, () => {
           runOnJS(handleSwipeComplete)(direction);
         });
       } else {
-        translationX.value = withSpring(0, { damping: 18, stiffness: 180 });
-        translationY.value = withSpring(0, { damping: 18, stiffness: 180 });
+        translationX.value = withSpring(0, { damping: 20, stiffness: 200 });
+        translationY.value = withSpring(0, { damping: 20, stiffness: 200 });
       }
     });
 
   const animatedStyle = useAnimatedStyle(() => {
     if (!isTopCard) {
-      // Stack effect for lower cards
-      const scale = interpolate(index, [1, 2], [0.94, 0.88]);
-      const translateY = interpolate(index, [1, 2], [14, 28]);
+      // Clean stack progression for background cards
+      const scale = interpolate(index, [1, 2], [0.95, 0.90]);
+      const translateY = interpolate(index, [1, 2], [12, 24]);
       return {
         transform: [{ scale }, { translateY }],
-        opacity: interpolate(index, [1, 2], [0.85, 0.6]),
+        opacity: interpolate(index, [1, 2], [0.9, 0.75]),
       };
     }
 
     const rotate = interpolate(
       translationX.value,
       [-SCREEN_WIDTH, SCREEN_WIDTH],
-      [-16, 16]
+      [-14, 14]
     );
 
     return {
@@ -133,24 +133,24 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
             />
           )}
 
-          {/* Card Bottom Meta Card */}
+          {/* Card Bottom Meta Pill Bar */}
           <View style={styles.metaContainer}>
             <View style={styles.metaRow}>
               <View style={styles.metaBadge}>
-                <Calendar size={14} color="#94A3B8" />
+                <Calendar size={13} color="#64748B" />
                 <Text style={styles.metaText}>{formattedDate}</Text>
               </View>
 
               <View style={styles.metaBadge}>
-                <Maximize2 size={14} color="#94A3B8" />
+                <Maximize2 size={13} color="#64748B" />
                 <Text style={styles.metaText}>
-                  {asset.width} × {asset.height}
+                  {asset.width}×{asset.height}
                 </Text>
               </View>
 
               {asset.filesize && (
                 <View style={styles.metaBadge}>
-                  <HardDrive size={14} color="#94A3B8" />
+                  <HardDrive size={13} color="#64748B" />
                   <Text style={styles.metaText}>{formatBytes(asset.filesize)}</Text>
                 </View>
               )}
@@ -171,32 +171,32 @@ const styles = StyleSheet.create({
   },
   cardInner: {
     flex: 1,
-    borderRadius: 24,
-    backgroundColor: '#1E293B',
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.35,
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
     shadowRadius: 16,
-    elevation: 8,
+    elevation: 4,
   },
   image: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#0F172A',
+    backgroundColor: '#F1F5F9',
   },
   metaContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     borderTopWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: '#E2E8F0',
   },
   metaRow: {
     flexDirection: 'row',
@@ -206,17 +206,20 @@ const styles = StyleSheet.create({
   metaBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: '#E2E8F0',
   },
   metaText: {
-    color: '#CBD5E1',
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 6,
+    color: '#334155',
+    fontSize: 11,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    marginLeft: 5,
+    letterSpacing: 0.2,
   },
 });
+

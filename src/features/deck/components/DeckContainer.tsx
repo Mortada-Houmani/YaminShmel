@@ -1,10 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MediaAsset, SwipeDirection } from '../../../types/media';
 import { SwipeableCard } from './SwipeableCard';
-import { Trash2, RotateCcw, Check, Sparkles, FolderCheck } from 'lucide-react-native';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+import { Trash2, RotateCcw, Check, Sparkles, CheckCircle2 } from 'lucide-react-native';
 
 interface DeckContainerProps {
   assets: MediaAsset[];
@@ -31,15 +29,15 @@ export const DeckContainer: React.FC<DeckContainerProps> = ({
     return (
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIconCircle}>
-          <FolderCheck size={48} color="#10B981" />
+          <CheckCircle2 size={40} color="#059669" strokeWidth={2} />
         </View>
-        <Text style={styles.emptyTitle}>Chunk Cleanup Complete!</Text>
+        <Text style={styles.emptyTitle}>Batch Review Complete</Text>
         <Text style={styles.emptySubtitle}>
-          You've reviewed all photos in this batch. Review staged items or load the next set of photos.
+          You've reviewed all photos in this batch. Inspect your staged items in the top trash or load more photos.
         </Text>
-        <TouchableOpacity style={styles.refreshButton} onPress={onRefreshMedia} activeOpacity={0.8}>
-          <Sparkles size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-          <Text style={styles.refreshButtonText}>Load Next Photo Set</Text>
+        <TouchableOpacity style={styles.refreshButton} onPress={onRefreshMedia} activeOpacity={0.85}>
+          <Sparkles size={16} color="#FFFFFF" style={{ marginRight: 8 }} />
+          <Text style={styles.refreshButtonText}>Load More Photos</Text>
         </TouchableOpacity>
       </View>
     );
@@ -75,9 +73,9 @@ export const DeckContainer: React.FC<DeckContainerProps> = ({
         <TouchableOpacity
           style={[styles.actionButton, styles.deleteActionButton]}
           onPress={() => handleManualSwipe('left')}
-          activeOpacity={0.8}
+          activeOpacity={0.75}
         >
-          <Trash2 size={26} color="#EF4444" />
+          <Trash2 size={24} color="#DC2626" strokeWidth={2.2} />
         </TouchableOpacity>
 
         {/* Undo Button */}
@@ -85,18 +83,18 @@ export const DeckContainer: React.FC<DeckContainerProps> = ({
           style={[styles.actionButton, styles.undoActionButton, !canUndo && styles.buttonDisabled]}
           onPress={onUndo}
           disabled={!canUndo}
-          activeOpacity={0.8}
+          activeOpacity={0.75}
         >
-          <RotateCcw size={22} color={canUndo ? '#F8FAFC' : '#475569'} />
+          <RotateCcw size={20} color={canUndo ? '#0F172A' : '#CBD5E1'} strokeWidth={2.2} />
         </TouchableOpacity>
 
         {/* Keep Button (Yamin - Right) */}
         <TouchableOpacity
           style={[styles.actionButton, styles.keepActionButton]}
           onPress={() => handleManualSwipe('right')}
-          activeOpacity={0.8}
+          activeOpacity={0.75}
         >
-          <Check size={28} color="#10B981" strokeWidth={3} />
+          <Check size={26} color="#059669" strokeWidth={3} />
         </TouchableOpacity>
       </View>
     </View>
@@ -107,52 +105,55 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'space-between',
-    paddingBottom: 24,
+    paddingBottom: 20,
   },
   deckArea: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 8,
   },
   controlsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 32,
-    marginTop: 16,
+    paddingHorizontal: 24,
+    marginTop: 14,
   },
   actionButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 16,
+    marginHorizontal: 14,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    shadowColor: '#000',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
   },
   deleteActionButton: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-    borderColor: 'rgba(239, 68, 68, 0.4)',
+    borderColor: '#FCA5A5',
+    backgroundColor: '#FFF5F5',
   },
   keepActionButton: {
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    borderColor: 'rgba(16, 185, 129, 0.4)',
+    borderColor: '#86EFAC',
+    backgroundColor: '#F0FDF4',
   },
   undoActionButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(30, 41, 59, 0.9)',
-    borderColor: 'rgba(71, 85, 105, 0.6)',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
   },
   buttonDisabled: {
     opacity: 0.4,
+    backgroundColor: '#F8FAFC',
   },
   emptyContainer: {
     flex: 1,
@@ -161,41 +162,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   emptyIconCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#ECFDF5',
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderColor: '#A7F3D0',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
+    letterSpacing: -0.3,
   },
   emptySubtitle: {
-    fontSize: 14,
-    color: '#94A3B8',
+    fontSize: 13,
+    color: '#64748B',
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 28,
+    lineHeight: 19,
+    marginBottom: 24,
+    maxWidth: 280,
   },
   refreshButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#6366F1',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 14,
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 22,
+    paddingVertical: 13,
+    borderRadius: 12,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   refreshButtonText: {
     color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: 14,
   },
 });
+

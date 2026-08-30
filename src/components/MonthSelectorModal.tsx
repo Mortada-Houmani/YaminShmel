@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MonthGroup } from '../types/media';
 import { X, Calendar, Check } from 'lucide-react-native';
 
@@ -29,9 +30,9 @@ export const MonthSelectorModal: React.FC<MonthSelectorModalProps> = ({
     <Modal visible={visible} animationType="slide" transparent={false}>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Select Cleanup Batch</Text>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <X size={22} color="#94A3B8" />
+          <Text style={styles.title}>Filter by Period</Text>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose} activeOpacity={0.75}>
+            <X size={20} color="#64748B" />
           </TouchableOpacity>
         </View>
 
@@ -40,43 +41,44 @@ export const MonthSelectorModal: React.FC<MonthSelectorModalProps> = ({
           <TouchableOpacity
             style={[styles.item, selectedMonthId === 'ALL' && styles.itemSelected]}
             onPress={() => handleSelect('ALL')}
-            activeOpacity={0.8}
+            activeOpacity={0.75}
           >
             <View style={styles.itemLeft}>
-              <View style={styles.iconBox}>
-                <Calendar size={18} color="#818CF8" />
+              <View style={[styles.iconBox, selectedMonthId === 'ALL' && styles.iconBoxSelected]}>
+                <Calendar size={18} color={selectedMonthId === 'ALL' ? '#0F172A' : '#64748B'} />
               </View>
               <View>
                 <Text style={styles.itemTitle}>All Photos</Text>
                 <Text style={styles.itemSubtitle}>{totalAssetsCount} media items</Text>
               </View>
             </View>
-            {selectedMonthId === 'ALL' && <Check size={20} color="#6366F1" />}
+            {selectedMonthId === 'ALL' && <Check size={18} color="#0F172A" strokeWidth={2.5} />}
           </TouchableOpacity>
 
-          <Text style={styles.sectionHeader}>Grouped by Month</Text>
+          <Text style={styles.sectionHeader}>Grouped Timeline</Text>
 
           <FlatList
             data={groups}
             keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
             renderItem={({ item }) => {
               const isSelected = selectedMonthId === item.id;
               return (
                 <TouchableOpacity
                   style={[styles.item, isSelected && styles.itemSelected]}
                   onPress={() => handleSelect(item.id)}
-                  activeOpacity={0.8}
+                  activeOpacity={0.75}
                 >
                   <View style={styles.itemLeft}>
-                    <View style={styles.iconBox}>
-                      <Calendar size={18} color="#94A3B8" />
+                    <View style={[styles.iconBox, isSelected && styles.iconBoxSelected]}>
+                      <Calendar size={18} color={isSelected ? '#0F172A' : '#64748B'} />
                     </View>
                     <View>
                       <Text style={styles.itemTitle}>{item.title}</Text>
                       <Text style={styles.itemSubtitle}>{item.count} photos</Text>
                     </View>
                   </View>
-                  {isSelected && <Check size={20} color="#6366F1" />}
+                  {isSelected && <Check size={18} color="#0F172A" strokeWidth={2.5} />}
                 </TouchableOpacity>
               );
             }}
@@ -90,7 +92,7 @@ export const MonthSelectorModal: React.FC<MonthSelectorModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#FAFAFA',
   },
   header: {
     flexDirection: 'row',
@@ -99,28 +101,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
+    letterSpacing: -0.3,
   },
   closeButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     justifyContent: 'center',
     alignItems: 'center',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     paddingTop: 16,
   },
   sectionHeader: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
     color: '#64748B',
     textTransform: 'uppercase',
@@ -132,39 +138,49 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(30, 41, 59, 0.6)',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderRadius: 16,
-    marginBottom: 10,
+    borderRadius: 14,
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(51, 65, 85, 0.5)',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 1,
   },
   itemSelected: {
-    backgroundColor: 'rgba(99, 102, 241, 0.15)',
-    borderColor: '#6366F1',
+    backgroundColor: '#F8FAFC',
+    borderColor: '#0F172A',
   },
   itemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
+  iconBoxSelected: {
+    backgroundColor: '#E2E8F0',
+  },
   itemTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   itemSubtitle: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#64748B',
+    fontVariant: ['tabular-nums'],
     marginTop: 2,
   },
 });
+

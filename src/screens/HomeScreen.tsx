@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { View, StyleSheet, SafeAreaView, StatusBar, Modal, ActivityIndicator, Text } from 'react-native';
+import { View, StyleSheet, StatusBar, Modal, ActivityIndicator, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMediaPermissions } from '../features/media/hooks/useMediaPermissions';
 import { PermissionGuard } from '../features/media/components/PermissionGuard';
 import { useMediaStore } from '../store/useMediaStore';
@@ -9,6 +10,7 @@ import { Header } from '../components/Header';
 import { DeckContainer } from '../features/deck/components/DeckContainer';
 import { MonthSelectorModal } from '../components/MonthSelectorModal';
 import { TrashReviewScreen } from '../features/review/components/TrashReviewScreen';
+import { GridBackground } from '../components/GridBackground';
 import { MediaAsset, SwipeDirection, MonthGroup } from '../types/media';
 
 export const HomeScreen: React.FC = () => {
@@ -20,6 +22,7 @@ export const HomeScreen: React.FC = () => {
     selectedMonthId,
     isLoading,
     endCursor,
+    isDemoMode,
     setAssets,
     appendAssets,
     setMonthGroups,
@@ -27,6 +30,7 @@ export const HomeScreen: React.FC = () => {
     setLoading,
     setError,
     addCleanedStats,
+    setDemoMode,
   } = useMediaStore();
 
   const {
@@ -44,35 +48,39 @@ export const HomeScreen: React.FC = () => {
   const [isMonthModalOpen, setIsMonthModalOpen] = useState(false);
   const [isTrashModalOpen, setIsTrashModalOpen] = useState(false);
 
-  // Load initial media assets chunk
-  const loadMedia = useCallback(async () => {
-    if (!hasPermission) return;
+  // Load media assets chunk (real or demo)
+  const loadMedia = useCallback(async (demoMode: boolean = false) => {
     setLoading(true);
     try {
-      const result = await fetchMediaChunk();
+      const result = await fetchMediaChunk(undefined, undefined, demoMode);
       setAssets(result.assets);
       const groups = groupAssetsByMonth(result.assets);
       setMonthGroups(groups);
       resetDeck();
     } catch (err: any) {
-      setError(err?.message || 'Failed to load photo library');
+      setError(err?.message || 'Failed to load photos');
     } finally {
       setLoading(false);
     }
-  }, [hasPermission]);
+  }, []);
+
+  const handleLaunchDemoMode = () => {
+    setDemoMode(true);
+    loadMedia(true);
+  };
 
   useEffect(() => {
-    if (hasPermission && assets.length === 0) {
-      loadMedia();
+    if (hasPermission && assets.length === 0 && !isDemoMode) {
+      loadMedia(false);
     }
-  }, [hasPermission, assets.length, loadMedia]);
+  }, [hasPermission, assets.length, isDemoMode, loadMedia]);
 
   // Load more assets when queue is near end
   const loadMoreMedia = async () => {
     if (isLoading) return;
     setLoading(true);
     try {
-      const result = await fetchMediaChunk(endCursor);
+      const result = await fetchMediaChunk(endCursor, undefined, isDemoMode);
       appendAssets(result.assets, result.hasNextPage, result.endCursor);
       const updatedGroups = groupAssetsByMonth([...assets, ...result.assets]);
       setMonthGroups(updatedGroups);
@@ -105,11 +113,12 @@ export const HomeScreen: React.FC = () => {
     return group ? group.title : 'All Photos';
   }, [selectedMonthId, monthGroups]);
 
-  if (!hasPermission) {
+  if (!hasPermission && !isDemoMode) {
     return (
       <PermissionGuard
         onRequestPermission={requestPermission}
         onOpenSettings={openSettings}
+        onLaunchDemoMode={handleLaunchDemoMode}
         isRequesting={isRequesting}
         canAskAgain={canAskAgain}
       />
@@ -118,7 +127,8 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
+      <GridBackground gridSize={28} gridColor="#E2E8F0" backgroundColor="#FAFAFA" />
 
       {/* Top Header */}
       <Header
@@ -131,8 +141,8 @@ export const HomeScreen: React.FC = () => {
       {/* Center Swipe Deck */}
       {isLoading && assets.length === 0 ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6366F1" />
-          <Text style={styles.loadingText}>Accessing Camera Roll...</Text>
+          <ActivityIndicator size="small" color="#0F172A" />
+          <Text style={styles.loadingText}>Loading Photos...</Text>
         </View>
       ) : (
         <DeckContainer
@@ -164,6 +174,7 @@ export const HomeScreen: React.FC = () => {
           stagedAssets={stagedForDeletion}
           onClose={() => setIsTrashModalOpen(false)}
           onRestoreAsset={restoreFromTrash}
+          isDemoMode={isDemoMode}
           onConfirmBatchDelete={(deletedIds) => {
             confirmBatchDelete(deletedIds);
             addCleanedStats(deletedIds.length, deletedIds.length * 2500000);
@@ -177,7 +188,7 @@ export const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#FAFAFA',
   },
   loadingContainer: {
     flex: 1,
@@ -185,9 +196,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#94A3B8',
-    fontSize: 14,
+    color: '#64748B',
+    fontSize: 13,
     fontWeight: '600',
-    marginTop: 12,
+    marginTop: 10,
   },
 });
+

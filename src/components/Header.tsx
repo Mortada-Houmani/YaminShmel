@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Trash2, ChevronDown, Sparkles } from 'lucide-react-native';
+import { Trash2, ChevronDown } from 'lucide-react-native';
 
 interface HeaderProps {
   stagedCount: number;
@@ -27,19 +27,19 @@ export const Header: React.FC<HeaderProps> = ({
       <TouchableOpacity
         style={styles.monthPill}
         onPress={onOpenMonthSelector}
-        activeOpacity={0.8}
+        activeOpacity={0.75}
       >
         <Text style={styles.monthPillText}>{selectedMonthTitle}</Text>
-        <ChevronDown size={14} color="#818CF8" style={{ marginLeft: 4 }} />
+        <ChevronDown size={13} color="#64748B" style={{ marginLeft: 4 }} />
       </TouchableOpacity>
 
       {/* Trash Review Button & Count Badge */}
       <TouchableOpacity
-        style={styles.trashBadgeButton}
+        style={[styles.trashBadgeButton, stagedCount > 0 && styles.trashBadgeButtonActive]}
         onPress={onOpenTrashReview}
-        activeOpacity={0.85}
+        activeOpacity={0.75}
       >
-        <Trash2 size={20} color={stagedCount > 0 ? '#EF4444' : '#94A3B8'} />
+        <Trash2 size={18} color={stagedCount > 0 ? '#DC2626' : '#64748B'} strokeWidth={2} />
         {stagedCount > 0 && (
           <View style={styles.badgeNumberBox}>
             <Text style={styles.badgeNumberText}>{stagedCount}</Text>
@@ -52,73 +52,79 @@ export const Header: React.FC<HeaderProps> = ({
 
 const styles = StyleSheet.create({
   headerContainer: {
-    height: 60,
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     borderBottomWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    backgroundColor: '#0F172A',
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
   },
   titleGroup: {
     flexDirection: 'column',
   },
   brandTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
-    color: '#F8FAFC',
-    letterSpacing: -0.5,
+    color: '#0F172A',
+    letterSpacing: -0.4,
   },
   arabicBadge: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    color: '#818CF8',
-    marginTop: -2,
+    color: '#64748B',
+    marginTop: -1,
   },
   monthPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(99, 102, 241, 0.12)',
+    backgroundColor: '#F8FAFC',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.3)',
+    borderColor: '#E2E8F0',
   },
   monthPillText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#C7D2FE',
+    color: '#1E293B',
   },
   trashBadgeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F8FAFC',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(51, 65, 85, 0.6)',
+    borderColor: '#E2E8F0',
     position: 'relative',
+  },
+  trashBadgeButtonActive: {
+    backgroundColor: '#FFF5F5',
+    borderColor: '#FECACA',
   },
   badgeNumberBox: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#EF4444',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    top: -3,
+    right: -3,
+    backgroundColor: '#DC2626',
+    borderRadius: 9,
+    minWidth: 18,
+    height: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
     borderWidth: 2,
-    borderColor: '#0F172A',
+    borderColor: '#FFFFFF',
   },
   badgeNumberText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
+    fontVariant: ['tabular-nums'],
   },
 });
+

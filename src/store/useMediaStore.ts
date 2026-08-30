@@ -13,6 +13,7 @@ interface MediaState {
   // Stats
   totalBytesCleaned: number;
   totalPhotosCleanedCount: number;
+  isDemoMode: boolean;
 
   // Actions
   setAssets: (assets: MediaAsset[]) => void;
@@ -22,6 +23,7 @@ interface MediaState {
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   addCleanedStats: (count: number, estimatedBytes: number) => void;
+  setDemoMode: (isDemo: boolean) => void;
 }
 
 export const useMediaStore = create<MediaState>()((set) => ({
@@ -34,6 +36,7 @@ export const useMediaStore = create<MediaState>()((set) => ({
   endCursor: undefined,
   totalBytesCleaned: 0,
   totalPhotosCleanedCount: 0,
+  isDemoMode: false,
 
   setAssets: (assets) => set({ assets }),
   appendAssets: (newAssets, hasNextPage, endCursor) =>
@@ -51,4 +54,5 @@ export const useMediaStore = create<MediaState>()((set) => ({
       totalPhotosCleanedCount: state.totalPhotosCleanedCount + count,
       totalBytesCleaned: state.totalBytesCleaned + estimatedBytes,
     })),
+  setDemoMode: (isDemoMode) => set({ isDemoMode }),
 }));

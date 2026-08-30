@@ -5,16 +5,16 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   Alert,
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { MediaAsset } from '../../../types/media';
 import { formatBytes, deleteBatchAssets } from '../../media/services/mediaService';
-import { Trash2, RotateCcw, CheckSquare, Square, X, AlertTriangle } from 'lucide-react-native';
+import { Trash2, RotateCcw, Check, X, Inbox } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const GRID_COLUMNS = 3;
@@ -25,6 +25,7 @@ interface TrashReviewScreenProps {
   onClose: () => void;
   onRestoreAsset: (assetId: string) => void;
   onConfirmBatchDelete: (deletedAssetIds: string[]) => void;
+  isDemoMode?: boolean;
 }
 
 export const TrashReviewScreen: React.FC<TrashReviewScreenProps> = ({
@@ -32,6 +33,7 @@ export const TrashReviewScreen: React.FC<TrashReviewScreenProps> = ({
   onClose,
   onRestoreAsset,
   onConfirmBatchDelete,
+  isDemoMode = false,
 }) => {
   // Array of asset IDs marked for deletion (all checked by default)
   const [selectedIds, setSelectedIds] = useState<string[]>(stagedAssets.map((a) => a.id));
@@ -79,7 +81,7 @@ export const TrashReviewScreen: React.FC<TrashReviewScreenProps> = ({
           onPress: async () => {
             setIsDeleting(true);
             try {
-              const success = await deleteBatchAssets(selectedIds);
+              const success = await deleteBatchAssets(selectedIds, isDemoMode);
               if (success) {
                 onConfirmBatchDelete(selectedIds);
                 Alert.alert('Cleanup Successful', `Successfully freed ~${formatBytes(totalBytesSelected)} of device storage!`);
@@ -110,12 +112,9 @@ export const TrashReviewScreen: React.FC<TrashReviewScreenProps> = ({
       >
         <Image source={{ uri: item.uri }} style={styles.gridImage} contentFit="cover" />
 
-        <View style={styles.checkBadge}>
-          {isChecked ? (
-            <CheckSquare size={20} color="#EF4444" fill="rgba(239, 68, 68, 0.2)" />
-          ) : (
-            <Square size={20} color="#64748B" />
-          )}
+        {/* Check Indicator Box */}
+        <View style={[styles.checkBadge, isChecked ? styles.checkBadgeActive : styles.checkBadgeInactive]}>
+          {isChecked && <Check size={12} color="#FFFFFF" strokeWidth={3} />}
         </View>
 
         <View style={styles.itemFooter}>
@@ -129,34 +128,34 @@ export const TrashReviewScreen: React.FC<TrashReviewScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* Screen Top Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Staged for Deletion (Shmel)</Text>
+          <Text style={styles.title}>Staged Deletions</Text>
           <Text style={styles.subtitle}>
-            {stagedAssets.length} photo(s) • ~{formatBytes(totalBytesSelected)} ready to clean
+            {stagedAssets.length} photo(s) • ~{formatBytes(totalBytesSelected)} staged
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <X size={22} color="#94A3B8" />
+        <TouchableOpacity style={styles.closeButton} onPress={onClose} activeOpacity={0.75}>
+          <X size={20} color="#64748B" />
         </TouchableOpacity>
       </View>
 
       {/* Select All Toggle Bar */}
       {stagedAssets.length > 0 && (
         <View style={styles.toolBar}>
-          <TouchableOpacity style={styles.toolBarButton} onPress={selectAll}>
+          <TouchableOpacity style={styles.toolBarButton} onPress={selectAll} activeOpacity={0.75}>
             <Text style={styles.toolBarText}>
               {selectedIds.length === stagedAssets.length ? 'Deselect All' : 'Select All'}
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.toolBarButton} onPress={handleRestoreSelected}>
-            <RotateCcw size={16} color="#818CF8" style={{ marginRight: 6 }} />
-            <Text style={styles.restoreText}>Restore Unselected</Text>
+          <TouchableOpacity style={styles.toolBarButton} onPress={handleRestoreSelected} activeOpacity={0.75}>
+            <RotateCcw size={14} color="#0F172A" style={{ marginRight: 5 }} />
+            <Text style={styles.restoreText}>Restore Unchecked</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -164,10 +163,12 @@ export const TrashReviewScreen: React.FC<TrashReviewScreenProps> = ({
       {/* Grid Content */}
       {stagedAssets.length === 0 ? (
         <View style={styles.emptyState}>
-          <Trash2 size={56} color="#475569" style={{ marginBottom: 16 }} />
-          <Text style={styles.emptyTitle}>Trash is Empty</Text>
+          <View style={styles.emptyIconCircle}>
+            <Inbox size={36} color="#64748B" />
+          </View>
+          <Text style={styles.emptyTitle}>Trash Queue Empty</Text>
           <Text style={styles.emptySubtitle}>
-            Swiping left (Shmel) on photos in the deck will stage them here for batch cleanup.
+            Swiping left on photos in the deck will stage them here for batch cleanup.
           </Text>
         </View>
       ) : (
@@ -177,6 +178,7 @@ export const TrashReviewScreen: React.FC<TrashReviewScreenProps> = ({
           renderItem={renderGridItem}
           numColumns={GRID_COLUMNS}
           contentContainerStyle={styles.gridContent}
+          showsVerticalScrollIndicator={false}
         />
       )}
 
@@ -193,7 +195,7 @@ export const TrashReviewScreen: React.FC<TrashReviewScreenProps> = ({
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <>
-                <Trash2 size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                <Trash2 size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
                 <Text style={styles.deleteButtonText}>
                   Clean Up Selected ({selectedIds.length})
                 </Text>
@@ -209,32 +211,37 @@ export const TrashReviewScreen: React.FC<TrashReviewScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#FAFAFA',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
+    letterSpacing: -0.3,
   },
   subtitle: {
-    fontSize: 13,
-    color: '#94A3B8',
+    fontSize: 12,
+    color: '#64748B',
+    fontVariant: ['tabular-nums'],
     marginTop: 2,
   },
   closeButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -242,23 +249,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'rgba(30, 41, 59, 0.5)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#F1F5F9',
+    borderBottomWidth: 1,
+    borderColor: '#E2E8F0',
   },
   toolBarButton: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   toolBarText: {
-    color: '#94A3B8',
-    fontSize: 13,
-    fontWeight: '600',
+    color: '#0F172A',
+    fontSize: 12,
+    fontWeight: '700',
   },
   restoreText: {
-    color: '#818CF8',
-    fontSize: 13,
-    fontWeight: '600',
+    color: '#0F172A',
+    fontSize: 12,
+    fontWeight: '700',
   },
   gridContent: {
     padding: 16,
@@ -267,18 +276,18 @@ const styles = StyleSheet.create({
   gridItem: {
     width: ITEM_SIZE,
     height: ITEM_SIZE,
-    borderRadius: 12,
+    borderRadius: 10,
     overflow: 'hidden',
-    backgroundColor: '#1E293B',
+    backgroundColor: '#FFFFFF',
     marginBottom: 8,
     marginRight: 8,
     position: 'relative',
     borderWidth: 2,
-    borderColor: '#EF4444',
+    borderColor: '#DC2626',
   },
   gridItemUnchecked: {
     borderColor: 'transparent',
-    opacity: 0.5,
+    opacity: 0.45,
   },
   gridImage: {
     width: '100%',
@@ -288,9 +297,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     right: 6,
-    backgroundColor: 'rgba(15, 23, 42, 0.7)',
-    borderRadius: 4,
-    padding: 2,
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkBadgeActive: {
+    backgroundColor: '#DC2626',
+  },
+  checkBadgeInactive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderWidth: 1,
+    borderColor: '#94A3B8',
   },
   itemFooter: {
     position: 'absolute',
@@ -298,14 +317,15 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: 'rgba(15, 23, 42, 0.75)',
-    paddingVertical: 4,
-    paddingHorizontal: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 4,
   },
   itemSizeText: {
-    color: '#E2E8F0',
-    fontSize: 10,
+    color: '#FFFFFF',
+    fontSize: 9,
     fontWeight: '700',
     textAlign: 'center',
+    fontVariant: ['tabular-nums'],
   },
   emptyState: {
     flex: 1,
@@ -313,43 +333,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 32,
   },
+  emptyIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#F8FAFC',
-    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 6,
+    letterSpacing: -0.3,
   },
   emptySubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#64748B',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 19,
+    maxWidth: 260,
   },
   footer: {
     padding: 16,
     borderTopWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: '#0F172A',
+    borderColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
   },
   deleteButton: {
-    height: 54,
-    backgroundColor: '#EF4444',
-    borderRadius: 16,
+    height: 52,
+    backgroundColor: '#DC2626',
+    borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#EF4444',
+    shadowColor: '#DC2626',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 3,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   deleteButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
   },
 });
+

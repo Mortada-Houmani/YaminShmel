@@ -12,8 +12,8 @@ export const DeckOverlay: React.FC<DeckOverlayProps> = ({ translationX, SWIPE_TH
   const keepStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       translationX.value,
-      [0, SWIPE_THRESHOLD / 2, SWIPE_THRESHOLD],
-      [0, 0.5, 1]
+      [0, SWIPE_THRESHOLD * 0.4, SWIPE_THRESHOLD],
+      [0, 0.6, 1]
     );
     return {
       opacity,
@@ -22,7 +22,7 @@ export const DeckOverlay: React.FC<DeckOverlayProps> = ({ translationX, SWIPE_TH
           scale: interpolate(
             translationX.value,
             [0, SWIPE_THRESHOLD],
-            [0.8, 1.1]
+            [0.85, 1.05]
           ),
         },
       ],
@@ -32,8 +32,8 @@ export const DeckOverlay: React.FC<DeckOverlayProps> = ({ translationX, SWIPE_TH
   const deleteStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       translationX.value,
-      [-SWIPE_THRESHOLD, -SWIPE_THRESHOLD / 2, 0],
-      [1, 0.5, 0]
+      [-SWIPE_THRESHOLD, -SWIPE_THRESHOLD * 0.4, 0],
+      [1, 0.6, 0]
     );
     return {
       opacity,
@@ -42,7 +42,7 @@ export const DeckOverlay: React.FC<DeckOverlayProps> = ({ translationX, SWIPE_TH
           scale: interpolate(
             translationX.value,
             [-SWIPE_THRESHOLD, 0],
-            [1.1, 0.8]
+            [1.05, 0.85]
           ),
         },
       ],
@@ -53,14 +53,14 @@ export const DeckOverlay: React.FC<DeckOverlayProps> = ({ translationX, SWIPE_TH
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       {/* Right / Yamin Badge (KEEP) */}
       <Animated.View style={[styles.badge, styles.keepBadge, keepStyle]}>
-        <Check color="#10B981" size={24} strokeWidth={3} />
-        <Text style={styles.keepText}>YAMIN (KEEP)</Text>
+        <Check color="#059669" size={20} strokeWidth={3} />
+        <Text style={styles.keepText}>KEEP</Text>
       </Animated.View>
 
       {/* Left / Shmel Badge (DELETE) */}
       <Animated.View style={[styles.badge, styles.deleteBadge, deleteStyle]}>
-        <Trash2 color="#EF4444" size={24} strokeWidth={3} />
-        <Text style={styles.deleteText}>SHMEL (DELETE)</Text>
+        <Trash2 color="#DC2626" size={20} strokeWidth={2.5} />
+        <Text style={styles.deleteText}>DELETE</Text>
       </Animated.View>
     </View>
   );
@@ -69,37 +69,42 @@ export const DeckOverlay: React.FC<DeckOverlayProps> = ({ translationX, SWIPE_TH
 const styles = StyleSheet.create({
   badge: {
     position: 'absolute',
-    top: 36,
+    top: 24,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 14,
-    borderWidth: 2,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
     zIndex: 100,
   },
   keepBadge: {
-    left: 24,
-    borderColor: '#10B981',
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    left: 20,
+    borderColor: '#059669',
   },
   keepText: {
-    color: '#10B981',
+    color: '#059669',
     fontWeight: '800',
-    fontSize: 15,
-    marginLeft: 8,
-    letterSpacing: 0.5,
+    fontSize: 14,
+    marginLeft: 6,
+    letterSpacing: 1,
   },
   deleteBadge: {
-    right: 24,
-    borderColor: '#EF4444',
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    right: 20,
+    borderColor: '#DC2626',
   },
   deleteText: {
-    color: '#EF4444',
+    color: '#DC2626',
     fontWeight: '800',
-    fontSize: 15,
-    marginLeft: 8,
-    letterSpacing: 0.5,
+    fontSize: 14,
+    marginLeft: 6,
+    letterSpacing: 1,
   },
 });
+
