@@ -17,7 +17,9 @@ import { formatBytes } from '../../media/services/mediaService';
 import { Calendar, HardDrive, Maximize2 } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.32;
+// Shorter swipe threshold (~70px on modern screens) plus flick velocity detection
+const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.18;
+const VELOCITY_THRESHOLD = 400;
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 const CARD_HEIGHT = SCREEN_HEIGHT * 0.64;
 
@@ -61,11 +63,19 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
       translationY.value = event.translationY;
     })
     .onEnd((event) => {
-      if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
-        const direction: SwipeDirection = event.translationX > 0 ? 'right' : 'left';
-        const targetX = event.translationX > 0 ? SCREEN_WIDTH * 1.5 : -SCREEN_WIDTH * 1.5;
+      const isRight =
+        event.translationX > SWIPE_THRESHOLD ||
+        (event.velocityX > VELOCITY_THRESHOLD && event.translationX > 20);
 
-        translationX.value = withTiming(targetX, { duration: 240 }, () => {
+      const isLeft =
+        event.translationX < -SWIPE_THRESHOLD ||
+        (event.velocityX < -VELOCITY_THRESHOLD && event.translationX < -20);
+
+      if (isRight || isLeft) {
+        const direction: SwipeDirection = isRight ? 'right' : 'left';
+        const targetX = isRight ? SCREEN_WIDTH * 1.5 : -SCREEN_WIDTH * 1.5;
+
+        translationX.value = withTiming(targetX, { duration: 200 }, () => {
           runOnJS(handleSwipeComplete)(direction);
         });
       } else {
@@ -87,8 +97,8 @@ export const SwipeableCard: React.FC<SwipeableCardProps> = ({
 
     const rotate = interpolate(
       translationX.value,
-      [-SCREEN_WIDTH, SCREEN_WIDTH],
-      [-14, 14]
+      [-SCREEN_WIDTH * 0.5, SCREEN_WIDTH * 0.5],
+      [-12, 12]
     );
 
     return {

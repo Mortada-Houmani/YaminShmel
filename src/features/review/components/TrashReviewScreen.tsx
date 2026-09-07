@@ -83,15 +83,24 @@ export const TrashReviewScreen: React.FC<TrashReviewScreenProps> = ({
             try {
               const success = await deleteBatchAssets(selectedIds, isDemoMode);
               if (success) {
+                // Automatically restore any unselected photos so they do not linger in the bin
+                const unselectedIds = stagedAssets
+                  .filter((a) => !selectedIds.includes(a.id))
+                  .map((a) => a.id);
+                unselectedIds.forEach((id) => onRestoreAsset(id));
+
                 onConfirmBatchDelete(selectedIds);
                 Alert.alert('Cleanup Successful', `Successfully freed ~${formatBytes(totalBytesSelected)} of device storage!`);
                 onClose();
               } else {
                 Alert.alert('Deletion Cancelled', 'The deletion request was cancelled or denied by the system.');
               }
-            } catch (error) {
+            } catch (error: any) {
               console.error('Error executing batch delete:', error);
-              Alert.alert('Deletion Error', 'An unexpected error occurred during batch deletion.');
+              Alert.alert(
+                'Deletion Error',
+                error?.message || 'The Android system was unable to delete the selected photos. Please ensure media permissions are granted.'
+              );
             } finally {
               setIsDeleting(false);
             }

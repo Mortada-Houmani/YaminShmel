@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ShieldCheck, Image as ImageIcon, Sparkles, Settings, Play } from 'lucide-react-native';
+import { ShieldCheck, Sparkles, Settings, Play } from 'lucide-react-native';
+import { Image } from 'expo-image';
 import { GridBackground } from '../../../components/GridBackground';
 
 interface PermissionGuardProps {
@@ -28,7 +29,11 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
         {/* Brand Icon Badge */}
         <View style={styles.iconContainer}>
           <View style={styles.iconCircle}>
-            <ImageIcon size={40} color="#0F172A" strokeWidth={1.75} />
+            <Image
+              source={require('../../../../assets/logo-yamin shmel.png')}
+              style={styles.logoImage}
+              contentFit="contain"
+            />
           </View>
           <View style={styles.badge}>
             <Sparkles size={14} color="#059669" />
@@ -46,9 +51,9 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
         <View style={styles.privacyCard}>
           <ShieldCheck size={22} color="#059669" style={styles.shieldIcon} />
           <View style={styles.privacyTextGroup}>
-            <Text style={styles.privacyTitle}>100% Local & Private</Text>
+            <Text style={styles.privacyTitle}>100% Local & Safe</Text>
             <Text style={styles.privacySubtitle}>
-              Your photos never leave your device. Zero cloud uploads, zero telemetry.
+              Your photos never leave your device. Deleted photos are safely kept in your phone's Trash/Bin for 30 days before permanent deletion.
             </Text>
           </View>
         </View>
@@ -121,6 +126,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 12,
     elevation: 3,
+  },
+  logoImage: {
+    width: 68,
+    height: 68,
   },
   badge: {
     position: 'absolute',

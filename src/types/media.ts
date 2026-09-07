@@ -36,3 +36,16 @@ export interface SessionStats {
   keptCount: number;
   stagedCount: number;
 }
+
+export interface DeviceAlbum {
+  id: string;
+  title: string;
+  assetCount: number;
+  type?: string;
+  coverUri?: string;
+}
+
+export type CleanScope =
+  | { type: 'ALL'; title: string }
+  | { type: 'ALBUM'; id: string; title: string; assetCount: number }
+  | { type: 'MONTH'; id: string; title: string; year: number; month: number; count: number };

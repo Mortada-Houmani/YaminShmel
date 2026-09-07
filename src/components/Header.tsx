@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Trash2, ChevronDown } from 'lucide-react-native';
+import { Trash2, ChevronDown, ArrowLeft } from 'lucide-react-native';
+import { Image } from 'expo-image';
 
 interface HeaderProps {
   stagedCount: number;
   selectedMonthTitle: string;
   onOpenMonthSelector: () => void;
   onOpenTrashReview: () => void;
+  onBack?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -14,14 +16,29 @@ export const Header: React.FC<HeaderProps> = ({
   selectedMonthTitle,
   onOpenMonthSelector,
   onOpenTrashReview,
+  onBack,
 }) => {
   return (
     <View style={styles.headerContainer}>
-      {/* Brand & Arabic Title */}
-      <View style={styles.titleGroup}>
-        <Text style={styles.brandTitle}>YaminShmel</Text>
-        <Text style={styles.arabicBadge}>يمين شمال</Text>
-      </View>
+      {/* Brand or Back to Home Button */}
+      {onBack ? (
+        <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.75}>
+          <ArrowLeft size={18} color="#0F172A" strokeWidth={2.5} />
+          <Text style={styles.backButtonText}>Home</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.titleGroup}>
+          <Image
+            source={require('../../assets/logo-yamin shmel.png')}
+            style={styles.brandLogo}
+            contentFit="contain"
+          />
+          <View>
+            <Text style={styles.brandTitle}>YaminShmel</Text>
+            <Text style={styles.arabicBadge}>يمين شمال</Text>
+          </View>
+        </View>
+      )}
 
       {/* Month Filter Selector */}
       <TouchableOpacity
@@ -62,7 +79,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   titleGroup: {
-    flexDirection: 'column',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  brandLogo: {
+    width: 34,
+    height: 34,
+    marginRight: 8,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  backButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginLeft: 5,
   },
   brandTitle: {
     fontSize: 17,

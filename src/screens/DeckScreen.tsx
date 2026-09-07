@@ -1,11 +1,9 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, StatusBar, Modal, ActivityIndicator, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useMediaPermissions } from '../features/media/hooks/useMediaPermissions';
-import { PermissionGuard } from '../features/media/components/PermissionGuard';
 import { useMediaStore } from '../store/useMediaStore';
 import { useDeckStore } from '../store/useDeckStore';
-import { fetchMediaChunk, groupAssetsByMonth } from '../features/media/services/mediaService';
+import { fetchMediaChunk } from '../features/media/services/mediaService';
 import { Header } from '../components/Header';
 import { DeckContainer } from '../features/deck/components/DeckContainer';
 import { MonthSelectorModal } from '../components/MonthSelectorModal';
@@ -13,24 +11,26 @@ import { TrashReviewScreen } from '../features/review/components/TrashReviewScre
 import { GridBackground } from '../components/GridBackground';
 import { MediaAsset, SwipeDirection, MonthGroup } from '../types/media';
 
-export const HomeScreen: React.FC = () => {
-  const { hasPermission, isRequesting, canAskAgain, requestPermission, openSettings } = useMediaPermissions();
+interface DeckScreenProps {
+  onBackToHome: () => void;
+}
 
+export const DeckScreen: React.FC<DeckScreenProps> = ({ onBackToHome }) => {
   const {
     assets,
     monthGroups,
     selectedMonthId,
+    activeScope,
     isLoading,
     endCursor,
     isDemoMode,
     setAssets,
     appendAssets,
-    setMonthGroups,
+    removeAssets,
     setSelectedMonth,
     setLoading,
     setError,
     addCleanedStats,
-    setDemoMode,
   } = useMediaStore();
 
   const {
@@ -48,42 +48,31 @@ export const HomeScreen: React.FC = () => {
   const [isMonthModalOpen, setIsMonthModalOpen] = useState(false);
   const [isTrashModalOpen, setIsTrashModalOpen] = useState(false);
 
-  // Load media assets chunk (real or demo)
-  const loadMedia = useCallback(async (demoMode: boolean = false) => {
+  // Load media scoped to current activeScope
+  const loadScopedMedia = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await fetchMediaChunk(undefined, undefined, demoMode);
+      const result = await fetchMediaChunk(undefined, undefined, isDemoMode, activeScope);
       setAssets(result.assets);
-      const groups = groupAssetsByMonth(result.assets);
-      setMonthGroups(groups);
       resetDeck();
     } catch (err: any) {
       setError(err?.message || 'Failed to load photos');
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const handleLaunchDemoMode = () => {
-    setDemoMode(true);
-    loadMedia(true);
-  };
+  }, [activeScope, isDemoMode, setAssets, resetDeck, setLoading, setError]);
 
   useEffect(() => {
-    if (hasPermission && assets.length === 0 && !isDemoMode) {
-      loadMedia(false);
-    }
-  }, [hasPermission, assets.length, isDemoMode, loadMedia]);
+    loadScopedMedia();
+  }, [loadScopedMedia]);
 
   // Load more assets when queue is near end
   const loadMoreMedia = async () => {
     if (isLoading) return;
     setLoading(true);
     try {
-      const result = await fetchMediaChunk(endCursor, undefined, isDemoMode);
+      const result = await fetchMediaChunk(endCursor, undefined, isDemoMode, activeScope);
       appendAssets(result.assets, result.hasNextPage, result.endCursor);
-      const updatedGroups = groupAssetsByMonth([...assets, ...result.assets]);
-      setMonthGroups(updatedGroups);
     } catch (err) {
       console.error('Error fetching pagination chunk:', err);
     } finally {
@@ -91,12 +80,15 @@ export const HomeScreen: React.FC = () => {
     }
   };
 
-  // Filter assets by month selection
+  // Filter assets if activeScope is ALL and user picked a month from top dropdown
   const filteredAssets = useMemo(() => {
+    if (activeScope.type !== 'ALL') {
+      return assets;
+    }
     if (selectedMonthId === 'ALL') return assets;
     const targetGroup = monthGroups.find((g: MonthGroup) => g.id === selectedMonthId);
     return targetGroup ? targetGroup.assets : assets;
-  }, [assets, monthGroups, selectedMonthId]);
+  }, [assets, monthGroups, selectedMonthId, activeScope]);
 
   const handleSwipe = (direction: SwipeDirection, asset: MediaAsset) => {
     if (direction === 'left') {
@@ -106,36 +98,31 @@ export const HomeScreen: React.FC = () => {
     }
   };
 
-  // Selected Month Title for Header
-  const selectedMonthTitle = useMemo(() => {
+  // Header Title reflecting active scope
+  const headerTitle = useMemo(() => {
+    if (activeScope.type === 'ALBUM') {
+      return activeScope.title;
+    }
+    if (activeScope.type === 'MONTH') {
+      return activeScope.title;
+    }
     if (selectedMonthId === 'ALL') return 'All Photos';
     const group = monthGroups.find((g: MonthGroup) => g.id === selectedMonthId);
     return group ? group.title : 'All Photos';
-  }, [selectedMonthId, monthGroups]);
-
-  if (!hasPermission && !isDemoMode) {
-    return (
-      <PermissionGuard
-        onRequestPermission={requestPermission}
-        onOpenSettings={openSettings}
-        onLaunchDemoMode={handleLaunchDemoMode}
-        isRequesting={isRequesting}
-        canAskAgain={canAskAgain}
-      />
-    );
-  }
+  }, [activeScope, selectedMonthId, monthGroups]);
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
       <GridBackground gridSize={28} gridColor="#E2E8F0" backgroundColor="#FAFAFA" />
 
-      {/* Top Header */}
+      {/* Top Header with Back Button */}
       <Header
         stagedCount={stagedForDeletion.length}
-        selectedMonthTitle={selectedMonthTitle}
+        selectedMonthTitle={headerTitle}
         onOpenMonthSelector={() => setIsMonthModalOpen(true)}
         onOpenTrashReview={() => setIsTrashModalOpen(true)}
+        onBack={onBackToHome}
       />
 
       {/* Center Swipe Deck */}
@@ -152,10 +139,14 @@ export const HomeScreen: React.FC = () => {
           onUndo={undo}
           canUndo={undoStack.length > 0}
           onRefreshMedia={loadMoreMedia}
+          stagedCount={stagedForDeletion.length}
+          onOpenTrash={() => setIsTrashModalOpen(true)}
+          onBackToHome={onBackToHome}
+          scopeTitle={headerTitle}
         />
       )}
 
-      {/* Month Filter Selector Modal */}
+      {/* Month Filter Selector Modal (available in ALL view) */}
       <MonthSelectorModal
         visible={isMonthModalOpen}
         onClose={() => setIsMonthModalOpen(false)}
@@ -177,7 +168,13 @@ export const HomeScreen: React.FC = () => {
           isDemoMode={isDemoMode}
           onConfirmBatchDelete={(deletedIds) => {
             confirmBatchDelete(deletedIds);
-            addCleanedStats(deletedIds.length, deletedIds.length * 2500000);
+            removeAssets(deletedIds);
+            resetDeck();
+            const cleanedBytes = deletedIds.reduce((sum, id) => {
+              const item = assets.find((a) => a.id === id);
+              return sum + (item?.filesize || 2500000);
+            }, 0);
+            addCleanedStats(deletedIds.length, cleanedBytes);
           }}
         />
       </Modal>
@@ -202,4 +199,3 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
-
